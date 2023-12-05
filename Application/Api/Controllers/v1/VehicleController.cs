@@ -45,31 +45,45 @@ namespace Api.Controllers.v1
         [HttpGet]
         public async Task<IActionResult> GetAllAsync()
         {
-            var vehicles = await _vehicleService.GetAllAsync();
-            return Ok(new { data = _mapper.Map<IList<VehicleGetResponse>>(vehicles) });
+            try
+            {
+                var vehicles = await _vehicleService.GetAllAsync();
+                return Ok(new { data = _mapper.Map<IList<VehicleGetResponse>>(vehicles) });
+            }
+            catch (Exception ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetByIdAsync(long id)
         {
-            var vehicle = await _vehicleService.GetByIdAsync(id);
-            return Ok(_mapper.Map<VehicleGetResponse>(vehicle));
+            try
+            {
+                var vehicle = await _vehicleService.GetByIdAsync(id);
+                return Ok(_mapper.Map<VehicleGetResponse>(vehicle));
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                return NotFound(ex.Message);
+            }
         }
 
         [HttpPut]
-        public async Task<IActionResult> UpdateAsync([FromBody] TransferOrderUpdateRequest request)
+        public async Task<IActionResult> UpdateAsync([FromBody] VehicleUpdateRequest request)
         {
             try
             {
-                var vehicle = _mapper.Map<Vehicle>(request);
-                var updatedVehicle = await _vehicleService.UpdateAsync(vehicle);
+                var updatedVehicle = await _vehicleService.UpdateAsync(_mapper.Map<Vehicle>(request));
                 await _unitOfWork.CommitTransactionAsync();
                 return Ok(new { id = updatedVehicle });
             }
             catch (Exception ex)
             {
                 await _unitOfWork.RollbackTransactionAsync();
-                return BadRequest(ex.Message);
+                return NotFound(ex.Message);
             }
         }
 
@@ -79,7 +93,7 @@ namespace Api.Controllers.v1
             try
             {
                 var vehicle = await _vehicleService.GetByIdAsync(id);
-                await _vehicleService.RemoveAsync(vehicle);
+                await _vehicleService.RemoveAsync(id);
                 await _unitOfWork.CommitTransactionAsync();
                 return Ok();
             }

@@ -2,10 +2,9 @@
 using DomainModel.Repository;
 using DomainService.Abstrack;
 using System.Linq.Expressions;
-
 namespace DomainService.Services
 {
-    public class VehicleService:IVehicleService
+    public class VehicleService : IVehicleService
     {
         private readonly IRepository<Vehicle> _repository;
 
@@ -19,25 +18,63 @@ namespace DomainService.Services
             return entity.Id;
         }
 
-        public Task<IList<Vehicle>> GetAllAsync()
+        public async Task<IList<Vehicle>> GetAllAsync()
         {
-            return _repository.GetAllAsync();
+            var vehicles = await _repository.GetAllAsync();
+            if(vehicles == null || vehicles.Count == 0)
+            {
+                throw new Exception("Not found any vehicle");
+            }
+            return vehicles;
         }
 
-        public async Task<Vehicle> GetByIdAsync(long id)
+        public async Task<Vehicle> GetByIdAsync(long vehicleId)
         {
-            return await _repository.GetByIdAsync(id);
-        }
+            var vehicle = await _repository.GetByIdAsync(vehicleId);
 
-        public async Task RemoveAsync(Vehicle entity)
+            if (vehicle != null)
+            {
+                return vehicle;
+            }
+            else
+            {
+                throw new Exception("Vehicle not found");
+            }
+        }
+        public async Task RemoveAsync(long id)
         {
-            await _repository.RemoveAsync(entity);
+            var vehicle = await _repository.GetByIdAsync(id);
+            if (vehicle != null)
+            {
+                await _repository.RemoveAsync(vehicle);
+            }
+            else
+            {
+                throw new Exception("Not found vehicle");
+            }
         }
 
         public async Task<long> UpdateAsync(Vehicle entity)
         {
-            await _repository.UpdateAsync(entity);
-            return entity.Id;
+            var existingVehicle = await GetByIdAsync(entity.Id);
+
+            if (existingVehicle != null)
+            {
+
+                existingVehicle.Id = entity.Id;
+                existingVehicle.NumberPlate = entity.NumberPlate;
+                existingVehicle.ThumbnailImage = entity.ThumbnailImage;
+                existingVehicle.Price = entity.Price;
+
+                await _repository.UpdateAsync(existingVehicle);
+                return entity.Id;
+            }
+            else
+            {
+                throw new Exception("Vehicle not found");
+            }
+
+
         }
 
         public async Task<IList<Vehicle>> WhereAsync(Expression<Func<Vehicle, bool>> predicate)

@@ -10,13 +10,13 @@ namespace Api.Controllers.v1
 {
     [Route("api/v1/[controller]s")]
     [ApiController]
-    public class TransferControllerController : ControllerBase
+    public class TransferOrderController : ControllerBase
     {
         private readonly ITransferOrderService _transferService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public TransferControllerController(ITransferOrderService transferService, IUnitOfWork unitOfWork, IMapper mapper)
+        public TransferOrderController(ITransferOrderService transferService, IUnitOfWork unitOfWork, IMapper mapper)
         {
             _transferService = transferService;
             _unitOfWork = unitOfWork;
@@ -36,7 +36,7 @@ namespace Api.Controllers.v1
             catch (Exception ex)
             {
                 await _unitOfWork.RollbackTransactionAsync();
-                return BadRequest(ex.Message);
+                return NotFound(ex.Message);
             }
         }
 
@@ -67,7 +67,7 @@ namespace Api.Controllers.v1
             catch (Exception ex)
             {
                 await _unitOfWork.RollbackTransactionAsync();
-                return BadRequest(ex.Message);
+                return NotFound(ex.Message);
             }
         }
 
@@ -84,7 +84,7 @@ namespace Api.Controllers.v1
             catch (Exception ex)
             {
                 await _unitOfWork.RollbackTransactionAsync();
-                return BadRequest(ex.Message);
+                return NotFound(ex.Message);
             }
         }
     }
