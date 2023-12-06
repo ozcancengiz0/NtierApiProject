@@ -43,15 +43,22 @@ namespace Api.Controllers.v1
         [HttpGet]
         public async Task<IActionResult> GetAllAsync()
         {
-            var transfers = await _transferService.IncludeAsync("Agent", "Vehicle");
-            return Ok(new { data = _mapper.Map<IList<TransferGetResponse>>(transfers) });
+                var transfers = await _transferService.IncludeAsync("Agent", "Vehicle");
+                return Ok(new { data = _mapper.Map<IList<TransferGetResponse>>(transfers) });
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetByIdAsync(long id)
         {
-            var customer = await _transferService.GetByIdAsync(id);
-            return Ok(_mapper.Map<TransferGetResponse>(customer));
+            try
+            {
+                var customer = await _transferService.GetByIdAsync(id);
+                return Ok(_mapper.Map<TransferGetResponse>(customer));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPut]

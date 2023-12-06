@@ -30,7 +30,12 @@ namespace DomainModel.Repository
 
         public async Task<T> GetByIdAsync(long id)
         {
-            return await _appDbContext.Set<T>().FindAsync(id);
+            var foundId = await _appDbContext.Set<T>().FindAsync(id);
+            if (foundId == null)
+            {
+                throw new Exception("Not Found");
+            }
+            return foundId;
         }
 
         public async Task<IList<T>> IncludeAsync(params string[] relations)

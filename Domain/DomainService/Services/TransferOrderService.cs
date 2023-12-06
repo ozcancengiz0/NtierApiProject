@@ -23,7 +23,8 @@ namespace DomainService.Services
         public async Task<IList<TransferOrder>> GetAllAsync()
         {
             var transferOrders = await _repository.GetAllAsync();
-            if (transferOrders ==null || transferOrders.Count==0) {
+            if (transferOrders == null || transferOrders.Count == 0)
+            {
                 throw new Exception("Not found any order");
             }
             else
@@ -32,14 +33,18 @@ namespace DomainService.Services
             }
         }
 
-        public async Task<TransferOrder> GetByIdAsync(long id)
+        public async Task<TransferOrder> GetByIdAsync(long id, params string[] relations)
         {
-            var foundOrder=await _repository.GetByIdAsync(id);
+            var order = await _repository.IncludeAsync("Agent", "Vehicle");
+            var foundOrder = order.FirstOrDefault(x => x.Id == id);
             if (foundOrder == null)
             {
                 throw new Exception("Not found order");
             }
-            else { return foundOrder; }
+            else
+            {
+                return foundOrder;
+            }
         }
 
         public async Task<IList<TransferOrder>> IncludeAsync(params string[] relations)
@@ -69,16 +74,19 @@ namespace DomainService.Services
             }
             else
             {
-                existingOrder.StartingDate=entity.StartingDate;
-                existingOrder.StartingPosition=entity.StartingPosition;
-                existingOrder.EndPosition=entity.EndPosition;
-                existingOrder.Hostess=entity.Hostess;
-                existingOrder.Id=entity.Id;
-                existingOrder.AgentId=entity.AgentId;
-                existingOrder.IsActive=entity.IsActive;
-                existingOrder.VehicleId=entity.VehicleId;
-            }
-            return entity.Id;
+                existingOrder.Id = entity.Id;
+                existingOrder.StartingDate = entity.StartingDate;
+                existingOrder.StartingPosition = entity.StartingPosition;
+                existingOrder.EndPosition = entity.EndPosition;
+                existingOrder.Hostess = entity.Hostess;
+                existingOrder.IsActive = entity.IsActive;
+
+                existingOrder.AgentId = entity.AgentId;
+                existingOrder.VehicleId = entity.VehicleId;
+
+                await _repository.UpdateAsync(existingOrder);
+                return entity.Id;
+            }        
         }
 
         public async Task<IList<TransferOrder>> WhereAsync(Expression<Func<TransferOrder, bool>> predicate)
